@@ -43,6 +43,6 @@ foreach($textMessages as $message){
 
 // メッセージ送信
 //$response = $bot->replyMessage($event->replyToken, $textMessageBuilder);
-$response = $bot->replyMessage($event->replyToken, $message);
+$response = $bot->replyMessage($event->replyToken, $messages);
 //error_log(var_export($response,true));
 return;
