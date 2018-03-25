@@ -1,5 +1,5 @@
 {
     "require": {
-        "linecorp/line-bot-sdk": "^1.4"
+        "linecorp/line-bot-sdk": "^2.3"
     }
 }
