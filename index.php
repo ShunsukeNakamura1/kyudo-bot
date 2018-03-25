@@ -31,10 +31,18 @@ else {
 }
 
 // メッセージ作成
-$textMessageBuilder = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($replyMessage);
+//$textMessageBuilder = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($replyMessage);
+$textMessages = array(
+  new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($replyMessage),
+  new \LINE\LINEBot\MessageBuilder\TextMessageBuilder("あ…")
+);
+$messages = new MultiMessageBuilder();
+foreach($textMessages as $message){
+  $messages->add($message);
+}
 
 // メッセージ送信
-$response = $bot->replyMessage($event->replyToken, $textMessageBuilder);
-error_log(var_export($response,true));
-error_log(var_export($response,true));
+//$response = $bot->replyMessage($event->replyToken, $textMessageBuilder);
+$response = $bot->replyMessage($event->replyToken, $message);
+//error_log(var_export($response,true));
 return;
