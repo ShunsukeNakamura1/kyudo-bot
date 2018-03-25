@@ -36,7 +36,7 @@ $textMessages = array(
   new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($replyMessage),
   new \LINE\LINEBot\MessageBuilder\TextMessageBuilder("あ…")
 );
-$messages = new MultiMessageBuilder();
+$messages = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
 foreach($textMessages as $message){
   $messages->add($message);
 }
