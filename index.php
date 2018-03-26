@@ -17,9 +17,9 @@ $httpClient = sethttpClient();
 $bot = setBot($httpClient);
 
 // イベントタイプがmessage以外はスルー
-if ($event->type != "message")
+if ($event->type != "message"){
     return;
-
+}
 // メッセージタイプが文字列の場合文字列をコピー
 if ($event->message->type == "text") {
   $copyMessage = $event->message->text;
@@ -52,7 +52,7 @@ function setBot($httpClient){
 }
 
 //文字列の配列を引数として送信用メッセージを返す
-buildMessages($textMessages){
+function buildMessages($textMessages){
   $replyMessages = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
   foreach($textMessages as $message){
     $a = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($message);
