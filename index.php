@@ -13,36 +13,50 @@ $event = $json->events[0];
 error_log(var_export($event, true));
 
 // ChannelAccessTokenとChannelSecret設定
-$httpClient = new \LINE\LINEBot\HTTPClient\CurlHTTPClient(getenv('LineMessageAPIChannelAccessToken'));
-$bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('LineMessageAPIChannelSecret')]);
+$httpClient = sethttpClient();
+$bot = setBot($httpClient);
 
 // イベントタイプがmessage以外はスルー
 if ($event->type != "message")
     return;
 
-$replyMessage = null;
-// メッセージタイプが文字列の場合
+// メッセージタイプが文字列の場合文字列をコピー
 if ($event->message->type == "text") {
-    $replyMessage = $event->message->text;
+  $copyMessage = $event->message->text;
 }
 //文字列以外は無視
 else {
-    return;
+  $copyMessage = "分からん";
+  return;
 }
 
-// メッセージ作成
-//$textMessageBuilder = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($replyMessage);
-$textMessages = array(
-  new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($replyMessage),
-  new \LINE\LINEBot\MessageBuilder\TextMessageBuilder("あ…")
-);
-$messages = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
-foreach($textMessages as $message){
-  $messages->add($message);
-}
+//応答メッセージ作成
+$textMessages = array($copyMessage, "あ…");
+//応答メッセージをLINE用に変換
+$replyMessages = buildMessages($textMessages);
 
 // メッセージ送信
-//$response = $bot->replyMessage($event->replyToken, $textMessageBuilder);
-$response = $bot->replyMessage($event->replyToken, $messages);
-//error_log(var_export($response,true));
+$response = $bot->replyMessage($event->replyToken, $replyMessages);
+error_log(var_export($response,true));
 return;
+
+
+//---------------------------------------------------------------------
+function sethttpClient(){
+  $client = new \LINE\LINEBot\HTTPClient\CurlHTTPClient(getenv('LineMessageAPIChannelAccessToken'));
+  return $client;
+}
+function setBot($httpClient){
+  $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('LineMessageAPIChannelSecret')]);
+  return $bot;
+}
+
+//文字列の配列を引数として送信用メッセージを返す
+buildMessages($textMessages){
+  $replyMessages = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
+  foreach($textMessages as $message){
+    $a = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($message);
+    $replyMessages->add($a);
+  }
+  return $replyMessages;
+}
