@@ -20,18 +20,28 @@ $bot = setBot($httpClient);
 if ($event->type != "message"){
     return;
 }
-// メッセージタイプが文字列の場合文字列をコピー
+
+//ここから応答
+$textMessages = array(); //送信する文字列たちを格納する配列
+// メッセージタイプが文字列の場合
 if ($event->message->type == "text") {
-  $copyMessage = $event->message->text;
+  //それぞれの送られてくる文字列に対して応答
+  switch($event->message->text){
+  case "こんにちは":
+    $textMessage[] = "はい";
+    break;
+  
+  default:
+    $textMessage[] = $event->message->text;
+    $textMessage[] = "aiueo";
+  }
 }
 //文字列以外は無視
 else {
-  $copyMessage = "分からん";
+  $textMessage[] = "分からん";
   return;
 }
 
-//応答メッセージ作成
-$textMessages = array($copyMessage, "あ…");
 //応答メッセージをLINE用に変換
 $replyMessages = buildMessages($textMessages);
 
