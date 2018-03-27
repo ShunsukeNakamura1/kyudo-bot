@@ -28,25 +28,25 @@ if ($event->message->type == "text") {
   //それぞれの送られてくる文字列に対して応答
   switch($event->message->text){
   case "こんにちは":
-    $textMessage[] = "はい";
+    $textMessages[] = "はい";
     break;
   
   default:
-    $textMessage[] = $event->message->text;
-    $textMessage[] = "aiueo";
+    $textMessages[] = $event->message->text;
+    $textMessages[] = "aiueo";
   }
 }
 //文字列以外は無視
 else {
-  $textMessage[] = "分からん";
+  $textMessages[] = "分からん";
   return;
 }
 
 //応答メッセージをLINE用に変換
-$replyMessages = buildMessages($textMessages);
+$replyMessage = buildMessages($textMessages);
 
 // メッセージ送信
-$response = $bot->replyMessage($event->replyToken, $replyMessages);
+$response = $bot->replyMessage($event->replyToken, $replyMessage);
 error_log(var_export($response,true));
 return;
 
@@ -63,10 +63,10 @@ function setBot($httpClient){
 
 //文字列の配列を引数として送信用メッセージを返す
 function buildMessages($textMessages){
-  $replyMessages = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
+  $replyMessage = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
   foreach($textMessages as $message){
     $a = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($message);
-    $replyMessages->add($a);
+    $replyMessage->add($a);
   }
-  return $replyMessages;
+  return $replyMessage;
 }
