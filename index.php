@@ -26,10 +26,11 @@ $textMessages = array(); //送信する文字列たちを格納する配列
 // メッセージタイプが文字列の場合
 if ($event->message->type == "text") {
   $userMessage = $event->message>text;
-  if ( preg_match('/[0-9]+/', $userMessage, $matches) ) {
+  if ( preg_match("/^[0-9]+$/", $userMessage, $matches) ) {
     $userMessage = "数字";
   }
   error_log(var_export($userMessage,true));
+  error_log(var_export($matches,true));
   //それぞれの送られてくる文字列に対して応答
   switch ($userMessage) {
   case "こんにちは":
