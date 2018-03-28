@@ -25,7 +25,7 @@ if ($event->type != "message") {
 $textMessages = array(); //送信する文字列たちを格納する配列
 // メッセージタイプが文字列の場合
 if ($event->message->type == "text") {
-  $userMessage = $event->message>text;
+  $userMessage = $event->message->text;
   if ( preg_match("/^[0-9]+$/", $userMessage, $matches) ) {
     $userMessage = "数字";
   }
