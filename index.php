@@ -13,11 +13,11 @@ $event = $json->events[0];
 error_log(var_export($event, true));
 
 // ChannelAccessTokenとChannelSecret設定
-$httpClient = sethttpClient();
+$httpClient = setHttpClient();
 $bot = setBot($httpClient);
 
 // イベントタイプがmessage以外はスルー
-if ($event->type != "message"){
+if ($event->type != "message") {
     return;
 }
 
@@ -25,12 +25,17 @@ if ($event->type != "message"){
 $textMessages = array(); //送信する文字列たちを格納する配列
 // メッセージタイプが文字列の場合
 if ($event->message->type == "text") {
+  $userMessage = $event->message>text;
+  if ( preg_match("/[0-9]+/", $userMessage, $matches) ) {
+    $userMessage = "数字";
+  }
   //それぞれの送られてくる文字列に対して応答
-  switch($event->message->text){
+  switch ($userMessage) {
   case "こんにちは":
     $textMessages[] = "はい";
     break;
-  
+  case "数字":
+    $textMessage[] = "数字だね！";
   default:
     $textMessages[] = $event->message->text;
     $textMessages[] = "aiueo";
@@ -52,17 +57,21 @@ return;
 
 
 //---------------------------------------------------------------------
-function sethttpClient(){
+function setHttpClient()
+{
   $client = new \LINE\LINEBot\HTTPClient\CurlHTTPClient(getenv('LineMessageAPIChannelAccessToken'));
   return $client;
 }
-function setBot($httpClient){
+
+function setBot($httpClient)
+{
   $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('LineMessageAPIChannelSecret')]);
   return $bot;
 }
 
-//文字列の配列を引数として送信用メッセージを返す
-function buildMessages($textMessages){
+//文字列の配列を引数として送信用メッセージ(LINE用)を返す
+function buildMessages($textMessages)
+{
   $replyMessage = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
   foreach($textMessages as $message){
     $a = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($message);
