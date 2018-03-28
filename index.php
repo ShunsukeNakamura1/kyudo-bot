@@ -29,6 +29,7 @@ if ($event->message->type == "text") {
   if ( preg_match("/[0-9]+/", $userMessage, $matches) ) {
     $userMessage = "数字";
   }
+  error_log($userMessage);
   //それぞれの送られてくる文字列に対して応答
   switch ($userMessage) {
   case "こんにちは":
