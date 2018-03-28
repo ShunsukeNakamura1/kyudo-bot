@@ -29,14 +29,15 @@ if ($event->message->type == "text") {
   if ( preg_match("/[0-9]+/", $userMessage, $matches) ) {
     $userMessage = "数字";
   }
-  error_log($userMessage);
+  error_log(var_export($userMessage,true));
   //それぞれの送られてくる文字列に対して応答
   switch ($userMessage) {
   case "こんにちは":
     $textMessages[] = "はい";
     break;
   case "数字":
-    $textMessage[] = "数字だね！";
+    $textMessages[] = "数字だね！";
+    break;
   default:
     $textMessages[] = $event->message->text;
     $textMessages[] = "aiueo";
