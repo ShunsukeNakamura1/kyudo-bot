@@ -18,7 +18,7 @@ error_log(var_export($event, true));
 $httpClient = setHttpClient();
 $bot = setBot($httpClient);
 
-foreach ($json->events as event) {
+foreach ($json->events as $event) {
 
     //ポストバックイベントだった場合
     if ($event->type == "postback") {
@@ -121,8 +121,6 @@ function replyMode($userMessage)
         return "copy";
     }
 }
-
-function 
 
 //文字列の配列を引数として送信用メッセージ(LINE用)を返す
 function buildMessages($textMessages)
