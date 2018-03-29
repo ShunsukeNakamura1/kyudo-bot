@@ -54,7 +54,8 @@ if ($event->message->type == "text") {
         $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessag, [$yes_post, $no_post]);
         // Confirmメッセージを作る
 $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
-        $bot->replyMessage($event->replyToken, $replyMessage);
+        $response = $bot->replyMessage($event->replyToken, $replyMessage);
+        error_log(var_export($response,true));
         return;
         break;
     default:
