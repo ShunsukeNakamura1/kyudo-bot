@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
+date_default_timezone_set('UTC');
+
 error_log("start");
 
 // POSTを受け取る
@@ -49,7 +51,7 @@ foreach ($json->events as event) {
             break;
         case "insert_request":
             $num = explode("/", $userMessage);
-            $now = date(DATE_ATOM)
+            $now = date(DateTime::ATOM);
             $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
             //はい ボタン
             $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."/".$now);
