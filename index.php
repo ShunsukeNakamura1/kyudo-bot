@@ -73,7 +73,7 @@ function isFraction($userMessage)
 {
   if ( preg_match("#^\d+/\d+$#", $userMessage, $matches) ) {
     $numbers = explode("/", $userMessage);
-    if (numbers[0] <= numbers[1]) {
+    if ($numbers[0] <= $numbers[1]) {
       return true;
     }
   }
