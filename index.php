@@ -26,18 +26,15 @@ $textMessages = array(); //送信する文字列たちを格納する配列
 // メッセージタイプが文字列の場合
 if ($event->message->type == "text") {
   $userMessage = $event->message->text;
-  if ( preg_match("#^\d+/\d+$#", $userMessage, $matches) ) {
-    $userMessage = "数字";
-  }
-  error_log(var_export($userMessage,true));
-  error_log(var_export($matches,true));
+  $mode = replyMode($userMessage);
   //それぞれの送られてくる文字列に対して応答
-  switch ($userMessage) {
-  case "こんにちは":
+  switch ($mode) {
+  case "hello":
     $textMessages[] = "はい";
     break;
-  case "数字":
-    $textMessages[] = "数字だね！";
+  case "insert_request":
+    $num = explode("/", $userMessage);
+    $textMessages[] = "射数:".num[1]."的中数:".num[0]."で登録をします";
     break;
   default:
     $textMessages[] = $event->message->text;
@@ -58,7 +55,6 @@ $response = $bot->replyMessage($event->replyToken, $replyMessage);
 error_log(var_export($response,true));
 return;
 
-
 //---------------------------------------------------------------------
 function setHttpClient()
 {
@@ -70,6 +66,30 @@ function setBot($httpClient)
 {
   $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('LineMessageAPIChannelSecret')]);
   return $bot;
+}
+
+//ユーザ入力が分数の形かつ分母が大きいかを調べる
+function isFraction($userMessage)
+{
+  if ( preg_match("#^\d+/\d+$#", $userMessage, $matches) ) {
+    $numbers = explode("/", $userMessage);
+    if (numbers[0] <= numbers[1]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//ユーザメッセージに応じて対応のモードを返す
+function replyMode($userMessage)
+{
+  if (isFraction($userMessage)) {
+    return "insert_request";
+  }else if ($userMessage == "こんにちは") {
+    return "hello";
+  }else {
+    return "copy";
+  }
 }
 
 //文字列の配列を引数として送信用メッセージ(LINE用)を返す
