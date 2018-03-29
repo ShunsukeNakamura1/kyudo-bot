@@ -16,65 +16,71 @@ error_log(var_export($event, true));
 $httpClient = setHttpClient();
 $bot = setBot($httpClient);
 
-//ポストバックイベントだった場合
-if ($event->type == "postback") {
-    if ($event->postback->data == "no") {
-        return; //dataがnoなら何もしない
-    } else { //yesの処理
-        $message = array("登録しました");
-        $bot->replyMessage($event->replyToken, buildMessages($message));
+foreach ($json->events as event) {
+
+    //ポストバックイベントだった場合
+    if ($event->type == "postback") {
+        if ($event->postback->data == "no") {
+            return; //dataがnoなら何もしない
+        } else { //yesの処理
+            $data = explode("/", $event->postback->data);
+            $date = new DateTime($data[2]);
+            $message = array("射数:".$data[0]."\n的中数:".$data[1]."\nで登録しました\n".$date->format('Y-m-d H:i:s'));
+            $bot->replyMessage($event->replyToken, buildMessages($message));
+            return;
+        }
+    }
+    // イベントタイプがmessage以外はスルー
+    else if ($event->type != "message") {
+            return;
+    }
+    
+    
+    //ここから応答
+    $textMessages = array(); //送信する文字列たちを格納する配列
+    // メッセージタイプが文字列の場合
+    if ($event->message->type == "text") {
+        $userMessage = $event->message->text;
+        $mode = replyMode($userMessage);
+        //それぞれの送られてくる文字列に対して応答
+        switch ($mode) {
+        case "hello":
+            $textMessages[] = "はい";
+            break;
+        case "insert_request":
+            $num = explode("/", $userMessage);
+            $now = date(DATE_ATOM)
+            $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
+            //はい ボタン
+            $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."/".$now);
+            //いいえボタン
+            $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no");
+            //Confirmテンプレート
+            $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
+            // Confirmメッセージを作る
+            $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
+            $response = $bot->replyMessage($event->replyToken, $replyMessage);
+            error_log(var_export($response,true));
+            return;
+            break;
+        default:
+            $textMessages[] = $event->message->text;
+            $textMessages[] = "aiueo";
+        }
+    }
+    //文字列以外は無視
+    else {
+        $textMessages[] = "分からん";
         return;
     }
+    
+    //応答メッセージをLINE用に変換
+    $replyMessage = buildMessages($textMessages);
+    
+    //メッセージ送信
+    $response = $bot->replyMessage($event->replyToken, $replyMessage);
+    error_log(var_export($response,true));
 }
-// イベントタイプがmessage以外はスルー
-else if ($event->type != "message") {
-        return;
-}
-
-
-//ここから応答
-$textMessages = array(); //送信する文字列たちを格納する配列
-// メッセージタイプが文字列の場合
-if ($event->message->type == "text") {
-    $userMessage = $event->message->text;
-    $mode = replyMode($userMessage);
-    //それぞれの送られてくる文字列に対して応答
-    switch ($mode) {
-    case "hello":
-        $textMessages[] = "はい";
-        break;
-    case "insert_request":
-        $num = explode("/", $userMessage);
-        $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします";
-        //はい ボタン
-        $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage);
-        //いいえボタン
-        $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no");
-        //Confirmテンプレート
-        $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
-        // Confirmメッセージを作る
-        $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
-        $response = $bot->replyMessage($event->replyToken, $replyMessage);
-        error_log(var_export($response,true));
-        return;
-        break;
-    default:
-        $textMessages[] = $event->message->text;
-        $textMessages[] = "aiueo";
-    }
-}
-//文字列以外は無視
-else {
-    $textMessages[] = "分からん";
-    return;
-}
-
-//応答メッセージをLINE用に変換
-$replyMessage = buildMessages($textMessages);
-
-//メッセージ送信
-$response = $bot->replyMessage($event->replyToken, $replyMessage);
-error_log(var_export($response,true));
 return;
 
 //---------------------------------------------------------------------
@@ -113,6 +119,8 @@ function replyMode($userMessage)
         return "copy";
     }
 }
+
+function 
 
 //文字列の配列を引数として送信用メッセージ(LINE用)を返す
 function buildMessages($textMessages)
