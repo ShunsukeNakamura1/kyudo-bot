@@ -20,7 +20,7 @@ $bot = setBot($httpClient);
 if ($event->type == "postback") {
     if ($event->postback->data == "no") {
         return; //dataがnoなら何もしない
-    } else () { //yesの処理
+    } else { //yesの処理
         $message = array("登録しました");
         $bot->replyMessage($event->replyToken, buildMessages($message));
         return;
