@@ -34,7 +34,7 @@ if ($event->message->type == "text") {
     break;
   case "insert_request":
     $num = explode("/", $userMessage);
-    $textMessages[] = "射数:".num[1]."的中数:".num[0]."で登録をします";
+    $textMessages[] = "射数:".$num[1]."的中数:".$num[0]."で登録をします";
     break;
   default:
     $textMessages[] = $event->message->text;
