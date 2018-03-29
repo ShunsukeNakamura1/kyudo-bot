@@ -51,9 +51,9 @@ if ($event->message->type == "text") {
         //いいえボタン
         $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no");
         //Confirmテンプレート
-        $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessag, [$yes_post, $no_post]);
+        $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
         // Confirmメッセージを作る
-$replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
+        $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
         $response = $bot->replyMessage($event->replyToken, $replyMessage);
         error_log(var_export($response,true));
         return;
