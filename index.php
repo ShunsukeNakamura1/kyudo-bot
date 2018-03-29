@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
-date_default_timezone_set('UTC');
+date_default_timezone_set('Asia/Tokyo');
 
 error_log("start");
 
