@@ -32,19 +32,25 @@ foreach ($json->events as $event) {
                 $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
                 $pdo = new PDO($dsn, $url['user'], $url['pass']);
                 $userID = $event->source->userId;
+                $hit = $data[0];
+                $atmpt = $data[1];
                 $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
                 $date = $buf[0];
                 $time = $buf[1];
-                error_log(var_export($buf, true));
-                $sql = "insert into record values(\'".$userID."\',".$data[0].",".$data[1].",\'".$date."\',\'".$time."\')";
-                $pdo->query($sql);
+                $stmt = $pdo->prepare("insert into record values(:userID, :hit, :atmpt, :date, :time)");
+                $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
+                $stmt->bindParam(':hit', $hit, PDO::PARAM_INT);
+                $stmt->bindParam(':atmpt', $atmpt, PDO::PARAM_INT);
+                $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+                $stmt->bindParam(':time', $time, PDO::PARAM_STR);
+                $stmt->execute();
             } catch (PDOException $e) {
                 echo "PDO Error:".$e->getMessage()."\n";
                 die();
             }
             $dns = null;
             //メッセージ送信
-            $message = array("射数:".$data[1]."\n的中数:".$data[0]."\nで登録しました\n".$dateTime->format('Y-m-d H:i:s'));
+            $message = array("射数:".$atmpt."\n的中数:".$hit."\nで登録しました\n".$dateTime->format('Y-m-d H:i:s'));
             $bot->replyMessage($event->replyToken, buildMessages($message));
             return;
         }
