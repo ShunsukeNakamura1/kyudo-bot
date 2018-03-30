@@ -37,7 +37,7 @@ foreach ($json->events as $event) {
                 $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
                 $date = $buf[0];
                 $time = $buf[1];
-                $stmt = $pdo->prepare("insert into record values(:userID, :hit, :atmpt, :date, :time)");
+                $stmt = $pdo->prepare("insert into recor values(:userID, :hit, :atmpt, :date, :time)");
                 $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
                 $stmt->bindParam(':hit', $hit, PDO::PARAM_INT);
                 $stmt->bindParam(':atmpt', $atmpt, PDO::PARAM_INT);
