@@ -27,7 +27,7 @@ foreach ($json->events as $event) {
         } else { //yesの処理
             $data = explode("/", $event->postback->data);
             $date = new DateTime($data[2]);
-            $message = array("射数:".$data[0]."\n的中数:".$data[1]."\nで登録しました\n".$date->format('Y-m-d H:i:s'));
+            $message = array("射数:".$data[1]."\n的中数:".$data[0]."\nで登録しました\n".$date->format('Y-m-d H:i:s'));
             $bot->replyMessage($event->replyToken, buildMessages($message));
             return;
         }
