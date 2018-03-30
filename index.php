@@ -33,8 +33,8 @@ foreach ($json->events as $event) {
                 $pdo = new PDO($dsn, $url['user'], $url['pass']);
                 $userID = $event->source->userId;
                 $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
-                $date = buf[0];
-                $time = buf[1];
+                $date = $buf[0];
+                $time = $buf[1];
                 $sql = 'insert into record values('.$userID.','.$data[0].','.$data[1].','.$date.','.$time.')';
                 $pdo->query($sql);
             } catch (PDOException $e) {
