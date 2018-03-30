@@ -35,6 +35,7 @@ foreach ($json->events as $event) {
                 $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
                 $date = $buf[0];
                 $time = $buf[1];
+                error_log(var_export($buf, true));
                 $sql = "insert into record values(\'".$userID."\',".$data[0].",".$data[1].",\'".$date."\',\'".$time."\')";
                 $pdo->query($sql);
             } catch (PDOException $e) {
