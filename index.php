@@ -19,15 +19,31 @@ $httpClient = setHttpClient();
 $bot = setBot($httpClient);
 
 foreach ($json->events as $event) {
-
     //ポストバックイベントだった場合
     if ($event->type == "postback") {
-        if ($event->postback->data == "no") {
-            return; //dataがnoなら何もしない
+        if ($event->postback->data == "no" || $event->source->type == "group") {
+            return; //dataがnoもしくはグループからの送信なら何もしない
         } else { //yesの処理
             $data = explode("/", $event->postback->data);
-            $date = new DateTime($data[2]);
-            $message = array("射数:".$data[1]."\n的中数:".$data[0]."\nで登録しました\n".$date->format('Y-m-d H:i:s'));
+            $dateTime = new DateTime($data[2]);
+            //データベースに接続
+            try {
+                $url = parse_url(getenv('DATABASE_URL'));
+                $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
+                $pdo = new PDO($dsn, $url['user'], $url['pass']);
+                $userID = $event->source->userId;
+                $buf = explode(" ", $dateTime);
+                $date = buf[0];
+                $time = buf[1];
+                $sql = 'insert into record values('.$userID.','.$data[0].','.$data[1].','.$date.','.$time.')';
+                $pdo->query($sql);
+            } catch (PDOException $e) {
+                echo "PDO Error".$e->getMessage()."\n";
+                die();
+            }
+            $dns = null;
+            //メッセージ送信
+            $message = array("射数:".$data[1]."\n的中数:".$data[0]."\nで登録しました\n".$dateTime->format('Y-m-d H:i:s'));
             $bot->replyMessage($event->replyToken, buildMessages($message));
             return;
         }
@@ -44,7 +60,7 @@ foreach ($json->events as $event) {
     if ($event->message->type == "text") {
         $userMessage = $event->message->text;
         $mode = replyMode($userMessage);
-        //それぞれの送られてくる文字列に対して応答
+        //それぞれのモードに対して応答
         switch ($mode) {
         case "hello":
             $textMessages[] = "はい";
