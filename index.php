@@ -31,15 +31,14 @@ foreach ($json->events as $event) {
                 $url = parse_url(getenv('DATABASE_URL'));
                 $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
                 $pdo = new PDO($dsn, $url['user'], $url['pass']);
-                //$userID = $event->source->userId;
-                //$buf = explode(" ", $dateTime);
-                //$date = buf[0];
-                //$time = buf[1];
-                //$sql = 'insert into record values('.$userID.','.$data[0].','.$data[1].','.$date.','.$time.')';
-                $sql = 'insert into tb values(2,1)';
+                $userID = $event->source->userId;
+                $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
+                $date = buf[0];
+                $time = buf[1];
+                $sql = 'insert into record values('.$userID.','.$data[0].','.$data[1].','.$date.','.$time.')';
                 $pdo->query($sql);
             } catch (PDOException $e) {
-                echo "PDO Error".$e->getMessage()."\n";
+                echo "PDO Error:".$e->getMessage()."\n";
                 die();
             }
             $dns = null;
