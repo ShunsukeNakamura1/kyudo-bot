@@ -51,8 +51,7 @@ foreach ($json->events as $event) {
             break;
         case "insert_request":
             $num = explode("/", $userMessage);
-            //$now = date(DateTime::ATOM);
-            $now = new DateTime();
+            $now = date('Y-m-d H:i:s');
             $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
             //はい ボタン
             $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."/".$now);
