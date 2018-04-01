@@ -20,21 +20,24 @@ $bot = setBot($httpClient);
 
 foreach ($json->events as $event) {
     //ポストバックイベントだった場合
-    if ($event->type == "postback") {
-        if ($event->postback->data == "no" || $event->source->type == "group") {
-            return; //dataがnoもしくはグループからの送信なら何もしない
+    if (isPostback($event)) {
+        if (isGroup($event)) { //グループからの送信なら何もしない
+            return;
+        }
+        $data = explode("/", $event->postback->data);
+        if ($data[0] == "no" ) {
+            
+            return; 
         } else { //yesの処理
-            $data = explode("/", $event->postback->data);
-            $dateTime = new DateTime($data[2]);
-            //データベースに接続
-            try {
+            $dateTime = $data[2];
+            try { //データベースに接続
                 $url = parse_url(getenv('DATABASE_URL'));
                 $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
                 $pdo = new PDO($dsn, $url['user'], $url['pass']);
                 $userID = $event->source->userId;
                 $hit = $data[0];
                 $atmpt = $data[1];
-                $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
+                $buf = explode(" ", $dateTime);
                 $date = $buf[0];
                 $time = $buf[1];
                 //リクエストがあったレコードの日にすでにレコードがあるか調べる
@@ -42,8 +45,8 @@ foreach ($json->events as $event) {
                 $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
                 $stmt->bindParam(':date', $date, PDO::PARAM_STR);
                 $stmt->execute();
-                //登録済みだった場合
                 if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    //登録済みだった場合レコードを更新
                     $hit += $result['hit'];
                     $atmpt += $result['atmpt'];
                     $stmt = $pdo->prepare("update record set hit=:hit, atmpt=:atmpt, time=:time where userid = :userID and date=:date");
@@ -64,21 +67,20 @@ foreach ($json->events as $event) {
             $pdo = null;
             $stmt = null;
             //メッセージ送信
-            $message = array("射数:".$atmpt."\n的中数:".$hit."\nで登録しました\n".$dateTime->format('Y-m-d H:i:s'));
+            $message = array("登録しました\n今日の記録は\n射数:".$atmpt."\n的中数:".$hit."\nです\n".$dateTime->format('Y-m-d H:i:s'));
             $bot->replyMessage($event->replyToken, buildMessages($message));
             return;
         }
     }
     // イベントタイプがmessage以外はスルー
-    else if ($event->type != "message") {
-            return;
+    else if (!isMessage($event)) {
+        return;
     }
-    
     
     //ここから応答
     $textMessages = array(); //送信する文字列たちを格納する配列
     // メッセージタイプが文字列の場合
-    if ($event->message->type == "text") {
+    if (isMessage_Text($event)) {
         $userMessage = $event->message->text;
         $mode = replyMode($userMessage);
         //それぞれのモードに対して応答
@@ -93,7 +95,7 @@ foreach ($json->events as $event) {
             //はい ボタン
             $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."/".$now);
             //いいえボタン
-            $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no");
+            $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no/".$now);
             //Confirmテンプレート
             $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
             // Confirmメッセージを作る
@@ -135,6 +137,36 @@ function setBot($httpClient)
     return $bot;
 }
 
+function isPostback($event)
+{
+    if ($event->type == "postback") {
+        return true;
+    } else {
+        return false;
+    }
+}
+function isMessage($event)
+{
+    if ($event->type == "message") {
+        return true;
+    } else {
+        return false;
+    }
+}
+function isMessage_Text($event) {
+    if($event->message->type == "text") {
+        return true;
+    } else {
+        return false;
+    }
+}
+function isGroup($event) {
+    if ($event->source->type == "group") {
+        return true;
+    } else {
+        return false;
+    }
+}
 //ユーザ入力が分数の形かつ分母が大きいかを調べる
 function isFraction($userMessage)
 {
