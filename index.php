@@ -37,19 +37,32 @@ foreach ($json->events as $event) {
                 $buf = explode(" ", $dateTime->format('Y-m-d H:i:s'));
                 $date = $buf[0];
                 $time = $buf[1];
-                $stmt = $pdo->prepare("insert into record values(:userID, :hit, :atmpt, :date, :time)");
+                //リクエストがあったレコードの日にすでにレコードがあるか調べる
+                $stmt = $pdo->prepare("select * from record where userid = :userID and date=:date");
+                $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
+                $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+                $stmt->execute();
+                //登録済みだった場合
+                if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $hit += $result['hit'];
+                    $atmpt += $result['atmpt'];
+                    $stmt = $pdo->prepare("update record set hit=:hit, atmpt=:atmpt, time=:time where userid = :userID and date=:date");
+                } else {
+                    //登録されていなかった場合レコードを挿入
+                    $stmt = $pdo->prepare("insert into record values(:userID, :hit, :atmpt, :date, :time)");
+                }
                 $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
                 $stmt->bindParam(':hit', $hit, PDO::PARAM_INT);
                 $stmt->bindParam(':atmpt', $atmpt, PDO::PARAM_INT);
                 $stmt->bindParam(':date', $date, PDO::PARAM_STR);
                 $stmt->bindParam(':time', $time, PDO::PARAM_STR);
                 $stmt->execute();
-                error_log(var_export($stmt->errorCode(), true));
             } catch (PDOException $e) {
                 echo "PDO Error:".$e->getMessage()."\n";
                 die();
             }
-            $dns = null;
+            $pdo = null;
+            $stmt = null;
             //メッセージ送信
             $message = array("射数:".$atmpt."\n的中数:".$hit."\nで登録しました\n".$dateTime->format('Y-m-d H:i:s'));
             $bot->replyMessage($event->replyToken, buildMessages($message));
