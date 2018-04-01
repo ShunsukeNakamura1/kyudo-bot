@@ -25,10 +25,32 @@ foreach ($json->events as $event) {
             return;
         }
         $data = explode("/", $event->postback->data);
-        if ($data[0] == "no" ) {
-            
+        if ($data[0] == "no" ) { //noなら時間の更新だけ行う
+            $dateTime = $data[1];
+            try { //データベースに接続
+                $url = parse_url(getenv('DATABASE_URL'));
+                $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
+                $pdo = new PDO($dsn, $url['user'], $url['pass']);
+                $userID = $event->source->userId;
+                $buf = explode(" ", $dateTime);
+                $date = $buf[0];
+                $time = $buf[1];
+                $stmt = $pdo->prepare("update record set time=:time where userid = :userID and date=:date");
+                $stmt->bindParam(':time', $time, PDO::PARAM_STR);
+                $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
+                $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+                $stmt->execute();
+            } catch (PDOException $e) {
+                echo "PDO Error:".$e->getMessage()."\n";
+                die();
+            }
+            $pdo = null;
+            $stmt = null;
+            //メッセージ送信
+            $message = array("キャンセルしました\n".$dateTime);
+            $bot->replyMessage($event->replyToken, buildMessages($message));
             return; 
-        } else { //yesの処理
+        } else { //yesならレコードの登録を行う
             $dateTime = $data[2];
             try { //データベースに接続
                 $url = parse_url(getenv('DATABASE_URL'));
@@ -67,7 +89,7 @@ foreach ($json->events as $event) {
             $pdo = null;
             $stmt = null;
             //メッセージ送信
-            $message = array("登録しました\n今日の記録は\n射数:".$atmpt."\n的中数:".$hit."\nです\n".$dateTime->format('Y-m-d H:i:s'));
+            $message = array("登録しました\n今日の記録は\n射数:".$atmpt."\n的中数:".$hit."\nです\n".$dateTime);
             $bot->replyMessage($event->replyToken, buildMessages($message));
             return;
         }
