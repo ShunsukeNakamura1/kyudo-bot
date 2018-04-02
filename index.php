@@ -221,6 +221,7 @@ function insertMode($userID, $newDateTime): array
     if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
         //登録済みだった場合時間を比較
         $buf = explode(":", $newTime);
+        error_log(var_export($buf, true));
         $newTime = buf[0]*10000 + buf[1]*100 + buf[2]*1;
         $buf = explode(":", $result['time']);
         $time = buf[0]*10000 + buf[1]*100 + buf[2]*1;
