@@ -214,8 +214,6 @@ function insertMode($userID, $newDateTime): array
         $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
         $stmt->bindParam(':date', $date, PDO::PARAM_STR);
         $stmt->execute();
-        $pdo = null;
-        $stmt = null;
     } catch (PDOException $e) {
         echo "PDO Error:".$e->getMessage()."\n";
         die();
