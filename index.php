@@ -222,9 +222,9 @@ function insertMode($userID, $newDateTime): array
         //登録済みだった場合時間を比較
         $buf = explode(":", $newTime);
         error_log(var_export($buf, true));
-        $newTime = (int)buf[0]*10000 + (int)buf[1]*100 + (int)buf[2]*1;
+        $newTime = (int)$buf[0]*10000 + (int)$buf[1]*100 + (int)$buf[2]*1;
         $buf = explode(":", $result['time']);
-        $time = (int)buf[0]*10000 + (int)buf[1]*100 + (int)buf[2]*1;
+        $time = (int)$buf[0]*10000 + (int)$buf[1]*100 + (int)$buf[2]*1;
         //新しいデータなら更新、古ければ無視
         if ($newTime > $time) {
             return array("mode" => "update", "hit" => $result['hit'], "atmpt" => $result['atmpt']);
