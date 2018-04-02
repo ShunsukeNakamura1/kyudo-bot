@@ -11,8 +11,6 @@ error_log($postData);
 
 // jeson化
 $json = json_decode($postData);
-$event = $json->events[0];
-error_log(var_export($event, true));
 
 // ChannelAccessTokenとChannelSecret設定
 $httpClient = setHttpClient();
@@ -21,6 +19,7 @@ $bot = setBot($httpClient);
 foreach ($json->events as $event) {
     //ポストバックイベントだった場合
     if (isPostback($event)) {
+        error_log(var_export($event, true));
         if (isGroup($event)) { //グループからの送信なら何もしない
             return;
         }
@@ -28,9 +27,7 @@ foreach ($json->events as $event) {
         if ($data[0] == "no" ) { //noなら時間の更新だけ行う
             $dateTime = $data[1];
             try { //データベースに接続
-                $url = parse_url(getenv('DATABASE_URL'));
-                $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
-                $pdo = new PDO($dsn, $url['user'], $url['pass']);
+                $pdo = connectDataBase();
                 $userID = $event->source->userId;
                 $buf = explode(" ", $dateTime);
                 $date = $buf[0];
@@ -53,9 +50,7 @@ foreach ($json->events as $event) {
         } else { //yesならレコードの登録を行う
             $dateTime = $data[2];
             try { //データベースに接続
-                $url = parse_url(getenv('DATABASE_URL'));
-                $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
-                $pdo = new PDO($dsn, $url['user'], $url['pass']);
+                $pdo = connectDataBase();
                 $userID = $event->source->userId;
                 $hit = $data[0];
                 $atmpt = $data[1];
@@ -147,19 +142,27 @@ foreach ($json->events as $event) {
 return;
 
 //---------------------------------------------------------------------
-function setHttpClient()
+function setHttpClient(): \LINE\LINEBot\HTTPClient\CurlHTTPClient
 {
     $client = new \LINE\LINEBot\HTTPClient\CurlHTTPClient(getenv('LineMessageAPIChannelAccessToken'));
     return $client;
 }
 
-function setBot($httpClient)
+function setBot(\LINE\LINEBot\HTTPClient\CurlHTTPClient $httpClient): \LINE\LINEBot
 {
     $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('LineMessageAPIChannelSecret')]);
     return $bot;
 }
+//データベース接続
+function connectDataBase(): PDO
+{
+    $url = parse_url(getenv('DATABASE_URL'));
+    $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
+    $pdo = new PDO($dsn, $url['user'], $url['pass']);
+    return $pdo;
+}
 
-function isPostback($event)
+function isPostback($event): bool
 {
     if ($event->type == "postback") {
         return true;
@@ -167,7 +170,7 @@ function isPostback($event)
         return false;
     }
 }
-function isMessage($event)
+function isMessage($event): bool
 {
     if ($event->type == "message") {
         return true;
@@ -175,22 +178,35 @@ function isMessage($event)
         return false;
     }
 }
-function isMessage_Text($event) {
+function isMessage_Text($event): bool
+{
     if($event->message->type == "text") {
         return true;
     } else {
         return false;
     }
 }
-function isGroup($event) {
+function isGroup($event): bool
+{
     if ($event->source->type == "group") {
         return true;
     } else {
         return false;
     }
 }
+
+//登録しようとしているデータが新しいもの(登録済みでない or Noが押されてない)か調べる
+//NEW    :その日初めてのデータ
+//OLD    :最新のものではないデータ
+//UPDATE :最新のデータ(更新する)
+function isNewData($pdo, $userID, $newDateTime)
+{
+    //時間を見て調べる
+    $stmt = $pdo->prepare("select * from record where userid = :userID and date=:date");
+}
+
 //ユーザ入力が分数の形かつ分母が大きいかを調べる
-function isFraction($userMessage)
+function isFraction($userMessage): bool
 {
     if ( preg_match("#^\d+/\d+$#", $userMessage, $matches) ) {
         $numbers = explode("/", $userMessage);
