@@ -14,7 +14,7 @@ $json = json_decode($postData);
 
 // ChannelAccessTokenとChannelSecret設定
 $httpClient = setHttpClient();
-$bot = setBot($httpClient);
+$bot = createBot($httpClient);
 
 foreach ($json->events as $event) {
     //ポストバックイベントだった場合
@@ -23,15 +23,26 @@ foreach ($json->events as $event) {
         if (isGroup($event)) { //グループからの送信なら何もしない
             return;
         }
-        $data = explode("/", $event->postback->data);
+        //入力データを分割してパラメータを設定
+        $data = explode("@", $event->postback->data);
+        $dateTime = $data[1]; //日時
+        $buf = explode(" ", $dateTime);
+        $date = $buf[0];      //日
+        $time = $buf[1];      //時間
+        $userID = $event->source->userId;  //ユーザID
+        $mode = insertMode($userID, $dateTime);
+        if ($mode["mode"] == "old") {
+            if ($data[0] == "no") {
+                return;
+            } else {
+                $message = array("無効なデータです");
+                $bot->replyMessage($event->replyToken, buildMessages($message));
+                return;
+            }
+        }
         if ($data[0] == "no" ) { //noなら時間の更新だけ行う
-            $dateTime = $data[1];
             try { //データベースに接続
                 $pdo = connectDataBase();
-                $userID = $event->source->userId;
-                $buf = explode(" ", $dateTime);
-                $date = $buf[0];
-                $time = $buf[1];
                 $stmt = $pdo->prepare("update record set time=:time where userid = :userID and date=:date");
                 $stmt->bindParam(':time', $time, PDO::PARAM_STR);
                 $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
@@ -46,28 +57,19 @@ foreach ($json->events as $event) {
             //メッセージ送信
             $message = array("キャンセルしました\n".$dateTime);
             $bot->replyMessage($event->replyToken, buildMessages($message));
-            return; 
-        } else { //yesならレコードの登録を行う
-            $dateTime = $data[2];
-            try { //データベースに接続
+            return;
+        } else {//yesならレコードの登録を行う
+            $data = explode("/", $data[0]);
+            $hit = $data[0];
+            $atmpt = $data[1];
+            try {//データベースに接続
                 $pdo = connectDataBase();
-                $userID = $event->source->userId;
-                $hit = $data[0];
-                $atmpt = $data[1];
-                $buf = explode(" ", $dateTime);
-                $date = $buf[0];
-                $time = $buf[1];
-                //リクエストがあったレコードの日にすでにレコードがあるか調べる
-                $stmt = $pdo->prepare("select * from record where userid = :userID and date=:date");
-                $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
-                $stmt->bindParam(':date', $date, PDO::PARAM_STR);
-                $stmt->execute();
-                if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if ($mode["mode"] == "update") {
                     //登録済みだった場合レコードを更新
-                    $hit += $result['hit'];
-                    $atmpt += $result['atmpt'];
+                    $hit += $mode['hit'];
+                    $atmpt += $mode['atmpt'];
                     $stmt = $pdo->prepare("update record set hit=:hit, atmpt=:atmpt, time=:time where userid = :userID and date=:date");
-                } else {
+                } else if ($mode["mode"] == "insert") {
                     //登録されていなかった場合レコードを挿入
                     $stmt = $pdo->prepare("insert into record values(:userID, :hit, :atmpt, :date, :time)");
                 }
@@ -84,11 +86,11 @@ foreach ($json->events as $event) {
             $pdo = null;
             $stmt = null;
             //メッセージ送信
-            $message = array("登録しました\n今日の記録は\n射数:".$atmpt."\n的中数:".$hit."\nです\n".$dateTime);
+            $message = array("登録しました\n今日の記録:\n射数:".$atmpt."\n的中数:".$hit."\n".$dateTime);
             $bot->replyMessage($event->replyToken, buildMessages($message));
             return;
         }
-    }
+    }//end of [if (isPostback($event))]
     // イベントタイプがmessage以外はスルー
     else if (!isMessage($event)) {
         return;
@@ -110,9 +112,9 @@ foreach ($json->events as $event) {
             $now = date('Y-m-d H:i:s');
             $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
             //はい ボタン
-            $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."/".$now);
+            $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."@".$now);
             //いいえボタン
-            $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no/".$now);
+            $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no@".$now);
             //Confirmテンプレート
             $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
             // Confirmメッセージを作る
@@ -120,7 +122,8 @@ foreach ($json->events as $event) {
             $response = $bot->replyMessage($event->replyToken, $replyMessage);
             error_log(var_export($response,true));
             return;
-            break;
+        case "explain":
+            
         default:
             $textMessages[] = $event->message->text;
             $textMessages[] = "aiueo";
@@ -148,12 +151,12 @@ function setHttpClient(): \LINE\LINEBot\HTTPClient\CurlHTTPClient
     return $client;
 }
 
-function setBot(\LINE\LINEBot\HTTPClient\CurlHTTPClient $httpClient): \LINE\LINEBot
+function createBot(\LINE\LINEBot\HTTPClient\CurlHTTPClient $httpClient): \LINE\LINEBot
 {
     $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('LineMessageAPIChannelSecret')]);
     return $bot;
 }
-//データベース接続
+/*データベース接続*/
 function connectDataBase(): PDO
 {
     $url = parse_url(getenv('DATABASE_URL'));
@@ -195,17 +198,47 @@ function isGroup($event): bool
     }
 }
 
-//登録しようとしているデータが新しいもの(登録済みでない or Noが押されてない)か調べる
-//NEW    :その日初めてのデータ
-//OLD    :最新のものではないデータ
-//UPDATE :最新のデータ(更新する)
-function isNewData($pdo, $userID, $newDateTime)
+/*登録しようとしているデータが新しいもの(登録済みでない or Noが押されてない)か調べる
+insert :その日初めてのデータ > 登録
+old    :最新のものではないデータ > 無視
+update :最新のデータ > 更新する*/
+function insertMode($userID, $newDateTime): array
 {
+    $buf = explode(" ", $newDateTime);
+    $date = $buf[0];
+    $newTime = $buf[1];
     //時間を見て調べる
-    $stmt = $pdo->prepare("select * from record where userid = :userID and date=:date");
+    try{
+        $pdo = connectDataBase();
+        $stmt = $pdo->prepare("select hit, atmpt, time from record where userid = :userID and date=:date");
+        $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
+        $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+        $stmt->execute();
+        $pdo = null;
+        $stmt = null;
+    } catch (PDOException $e) {
+        echo "PDO Error:".$e->getMessage()."\n";
+        die();
+    }
+    if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        //登録済みだった場合時間を比較
+        $buf = explode(":", $newTime);
+        $newTime = buf[0]*10000 + buf[1]*100 + buf[2]*1;
+        $buf = explode(":", $result['time']);
+        $time = buf[0]*10000 + buf[1]*100 + buf[2]*1;
+        //新しいデータなら更新、古ければ無視
+        if ($newTime > $time) {
+            return array("mode" => "update", "hit" => $result['hit'], "atmpt" => $result['atmpt']);
+        } else {
+            return array("mode" => "old", "hit" => 0, "atmpt" => 0);
+        }
+    } else {
+        //登録されていなかった場合レコードを登録
+        return array("mode" => "insert", "hit" => 0, "atmpt" => 0);
+    }
 }
 
-//ユーザ入力が分数の形かつ分母が大きいかを調べる
+/*ユーザ入力が分数の形かつ分母が大きいかを調べる*/
 function isFraction($userMessage): bool
 {
     if ( preg_match("#^\d+/\d+$#", $userMessage, $matches) ) {
@@ -217,20 +250,22 @@ function isFraction($userMessage): bool
     return false;
 }
 
-//ユーザメッセージに応じて対応のモードを返す
-function replyMode($userMessage)
+/*ユーザメッセージに応じて対応のモードを返す*/
+function replyMode($userMessage): string
 {
     if (isFraction($userMessage)) {
         return "insert_request";
-    }else if ($userMessage == "こんにちは") {
+    } else if ($userMessage == "こんにちは") {
         return "hello";
-    }else {
+    } else if ($userMessage == "使い方") {
+        return "explain";
+    } else {
         return "copy";
     }
 }
 
-//文字列の配列を引数として送信用メッセージ(LINE用)を返す
-function buildMessages($textMessages)
+/*文字列の配列を引数として送信用メッセージ(LINE用)を返す*/
+function buildMessages($textMessages): \LINE\LINEBot\MessageBuilder\MultiMessageBuilder
 {
     $replyMessage = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
     foreach($textMessages as $message){
