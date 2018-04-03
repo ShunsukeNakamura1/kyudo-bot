@@ -4,97 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "80bcb591631567008ef4a421969d16ad",
+    "content-hash": "1cbb509bc58e72bda4a4f17bb1260cfb",
     "packages": [
-        {
-            "name": "gufy/google-charts",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mgufrone/google-charts.git",
-                "reference": "aa1f2bc3f650ccf7e563806778fee8af84c6a1ef"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mgufrone/google-charts/zipball/aa1f2bc3f650ccf7e563806778fee8af84c6a1ef",
-                "reference": "aa1f2bc3f650ccf7e563806778fee8af84c6a1ef",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "4.2.*",
-                "php": ">=5.4.0"
-            },
-            "require-dev": {
-                "orchestra/testbench": "~2.2",
-                "satooshi/php-coveralls": "dev-master"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/migrations",
-                    "tests/WorkbenchTestCase.php"
-                ],
-                "psr-0": {
-                    "Gufy\\GoogleCharts\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "authors": [
-                {
-                    "name": "Mochamad Gufron",
-                    "email": "mgufronefendi@gmail.com"
-                }
-            ],
-            "time": "2014-07-22T03:15:54+00:00"
-        },
-        {
-            "name": "illuminate/support",
-            "version": "v4.2.17",
-            "target-dir": "Illuminate/Support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/illuminate/support.git",
-                "reference": "db61f3f6d507ce417ca993e1f93585db7efd8b12"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/support/zipball/db61f3f6d507ce417ca993e1f93585db7efd8b12",
-                "reference": "db61f3f6d507ce417ca993e1f93585db7efd8b12",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4.0"
-            },
-            "require-dev": {
-                "jeremeamia/superclosure": "~1.0.1",
-                "patchwork/utf8": "~1.1"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "4.2-dev"
-                }
-            },
-            "autoload": {
-                "psr-0": {
-                    "Illuminate\\Support": ""
-                },
-                "files": [
-                    "Illuminate/Support/helpers.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Taylor Otwell",
-                    "email": "taylorotwell@gmail.com"
-                }
-            ],
-            "time": "2015-01-27T20:51:43+00:00"
-        },
         {
             "name": "linecorp/line-bot-sdk",
             "version": "2.3.0",
@@ -152,9 +63,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "gufy/google-charts": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

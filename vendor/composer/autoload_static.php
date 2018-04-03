@@ -6,10 +6,6 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitba487ab24d1ca96168040c181b2420f2
 {
-    public static $files = array (
-        '3b5531f8bb4716e1b6014ad7e734f545' => __DIR__ . '/..' . '/illuminate/support/Illuminate/Support/helpers.php',
-    );
-
     public static $prefixLengthsPsr4 = array (
         'L' => 
         array (
@@ -24,34 +20,11 @@ class ComposerStaticInitba487ab24d1ca96168040c181b2420f2
         ),
     );
 
-    public static $prefixesPsr0 = array (
-        'I' => 
-        array (
-            'Illuminate\\Support' => 
-            array (
-                0 => __DIR__ . '/..' . '/illuminate/support',
-            ),
-        ),
-        'G' => 
-        array (
-            'Gufy\\GoogleCharts\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/gufy/google-charts/src',
-            ),
-        ),
-    );
-
-    public static $classMap = array (
-        'WorkbenchTestCase' => __DIR__ . '/..' . '/gufy/google-charts/tests/WorkbenchTestCase.php',
-    );
-
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitba487ab24d1ca96168040c181b2420f2::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitba487ab24d1ca96168040c181b2420f2::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitba487ab24d1ca96168040c181b2420f2::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitba487ab24d1ca96168040c181b2420f2::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -1,6 +1,5 @@
 {
     "require": {
-        "linecorp/line-bot-sdk": "^2.3",
-        "gufy/google-charts": "dev-master"
+        "linecorp/line-bot-sdk": "^2.3"
     }
 }
