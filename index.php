@@ -91,58 +91,60 @@ foreach ($json->events as $event) {
             return;
         }
     }//end of [if (isPostback($event))]
-    // イベントタイプがmessage以外はスルー
-    else if (!isMessage($event)) {
-        return;
-    }
-    
-    //ここから応答
-    $textMessages = array(); //送信する文字列たちを格納する配列
-    // メッセージタイプが文字列の場合
-    if (isMessage_Text($event)) {
-        $userMessage = $event->message->text;
-        $mode = replyMode($userMessage);
-        //それぞれのモードに対して応答
-        switch ($mode) {
-        case "hello":
-            $textMessages[] = "はい";
-            break;
-        case "insert_request":
-            $num = explode("/", $userMessage);
-            $now = date('Y-m-d H:i:s');
-            $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
-            //はい ボタン
-            $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."@".$now);
-            //いいえボタン
-            $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no@".$now);
-            //Confirmテンプレート
-            $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
-            // Confirmメッセージを作る
-            $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
-            $response = $bot->replyMessage($event->replyToken, $replyMessage);
-            error_log(var_export($response,true));
-            return;
-        case "explain":
-            //$picture = "http://chart.apis.google.com/chart?cht=p&chtt=Browser+market+2008&chd=t%3A22%2C30.7%2C1.7%2C36.5%2C1.1%2C2%2C1.4&chl=IE7%7CIE6%7CIE5%7CFirefox%7CMozilla%7CSafari%7COpera&chs=400x300&chco=99C754%2C54C7C5%2C999999&chm=&chf=a%2Cs%2Cffffff" alt="Browser market 2008" style="width:400px;height:300px";
-            //
-            //return;
-        default:
-            $textMessages[] = $event->message->text;
-            $textMessages[] = "aiueo";
+    // イベントタイプがmessage
+    else if (isMessage($event)) {
+        //ここから応答
+        $textMessages = array(); //送信する文字列たちを格納する配列
+        // メッセージタイプが文字列の場合
+        if (isMessage_Text($event)) {
+            $userMessage = $event->message->text;
+            $mode = replyMode($userMessage);
+            //それぞれのモードに対して応答
+            switch ($mode) {
+            case "hello":
+                $textMessages[] = "はい";
+                break;
+            case "insert_request":
+                $num = explode("/", $userMessage);
+                $now = date('Y-m-d H:i:s');
+                $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
+                //はい ボタン
+                $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."@".$now);
+                //いいえボタン
+                $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no@".$now);
+                //Confirmテンプレート
+                $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
+                // Confirmメッセージを作る
+                $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
+                $response = $bot->replyMessage($event->replyToken, $replyMessage);
+                error_log(var_export($response,true));
+                return;
+            case "explain":
+                $picture = 'https://chart.googleapis.com/chart?cht=p&chtt=Browse+market+2008&chd=t%3A22%2C30.7%2C1.7%2C36.5%2C1.1%2C2%2C1.4&chl=IE7%7CIE6%7CIE5%7CFirefox%7CMozilla%7CSafari%7COpera&chs=400x300&chco=99C754%2C54C7C5%2C999999&chm=&chf=a%2Cs%2Cffffff" alt="Browser market 2008" style="width:400px;height:300px;';
+                $replyMessage = new LINE\LINEBot\MessageBuilder\ImageMessageBuilder($picture, $picture);
+                $response = $bot->replyMessage($event->replyToken, $replyMessage);
+                error_log(var_export($response,true));
+                return;
+            default:
+                $textMessages[] = $event->message->text;
+                $textMessages[] = "aiueo";
+            }
         }
-    }
-    //文字列以外は無視
-    else {
-        $textMessages[] = "分からん";
+        //文字列以外は無視
+        else {
+            $textMessages[] = "分からん";
+            return;
+        }
+        
+        //応答メッセージをLINE用に変換
+        $replyMessage = buildMessages($textMessages);
+        
+        //メッセージ送信
+        $response = $bot->replyMessage($event->replyToken, $replyMessage);
+        error_log(var_export($response,true));
+    } else {
         return;
     }
-    
-    //応答メッセージをLINE用に変換
-    $replyMessage = buildMessages($textMessages);
-    
-    //メッセージ送信
-    $response = $bot->replyMessage($event->replyToken, $replyMessage);
-    error_log(var_export($response,true));
 }
 return;
 
