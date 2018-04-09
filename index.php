@@ -121,7 +121,7 @@ foreach ($json->events as $event) {
                 return;
             case "explain":
                 //herokuにデプロイした画像を使ってテストしてみる?
-                $picture = 'https://'.$_SERVER['HTTP_HOST'].'/img/original.jpg';
+                $picture = 'https://'.$_SERVER['HTTP_HOST'].'/imgs/original.jpg';
                 $replyMessage = new LINE\LINEBot\MessageBuilder\ImageMessageBuilder($picture, $picture);
                 $response = $bot->replyMessage($event->replyToken, $replyMessage);
                 error_log(var_export($response,true));
