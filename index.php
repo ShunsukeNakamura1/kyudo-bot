@@ -120,7 +120,7 @@ foreach ($json->events as $event) {
                 error_log(var_export($response,true));
                 return;
             case "explain":
-                $picture = 'https://chart.googleapis.com/chart?cht=p&chtt=Browse+market+2008&chd=t%3A22%2C30.7%2C1.7%2C36.5%2C1.1%2C2%2C1.4&chl=IE7%7CIE6%7CIE5%7CFirefox%7CMozilla%7CSafari%7COpera&chs=400x300&chco=99C754%2C54C7C5%2C999999&chm=&chf=a%2Cs%2Cffffff" alt="Browser market 2008" style="width:400px;height:300px.jpg';
+                $picture = 'https://chart.googleapis.com/chart?cht=p&chtt=Browse+market+2008&chd=t%3A22%2C30.7%2C1.7%2C36.5%2C1.1%2C2%2C1.4&chl=IE7%7CIE6%7CIE5%7CFirefox%7CMozilla%7CSafari%7COpera&chs=200x200&chco=99C754%2C54C7C5%2C999999&chm=&chf=a%2Cs%2Cffffff" alt="Browser market 2008" style="width:200px;height:200px;".jpg';
                 $replyMessage = new LINE\LINEBot\MessageBuilder\ImageMessageBuilder($picture, $picture);
                 $response = $bot->replyMessage($event->replyToken, $replyMessage);
                 error_log(var_export($response,true));
