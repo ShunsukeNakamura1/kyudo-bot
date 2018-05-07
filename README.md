@@ -1,32 +1,9 @@
-# test-linebot
+# kyudo-bot
 
-## heroku
-```bash
-# heroku cli install
-brew install heroku
+弓道部員のためのLINE BOT
 
-# login
-heroku login
+的中を記録し(実装済), グラフ等にして表示する(未実装)
 
-# undefined key
-heroku keys:add
+Herokuを使用
 
-# add heroku env
-heroku config:set LineMessageAPIChannelAccessToken={ChannelAccessToken}
-heroku config:set LineMessageAPIChannelSecret={ChannelSecret}
-
-# heroku create app
-heroku create APPNAME
-
-# git clone
-git clone git@github.com:skycat-me/test-linebot.git
-
-# git add remote
-git remote add heroku git@heroku.com:APPNAME.git
-
-# git push(heroku)
-git push heroku master
-
-# get Webhook url
-heroku open
-```
+データベースはHeroku Postgresを使用
